@@ -1,0 +1,123 @@
+{
+  "dca_reserve": 25.0,
+  "grid_capital": 500,
+  "buffer": 50.0,
+  "holdings": {
+    "BTC": 0.00423824,
+    "ETH": 0.06160815
+  },
+  "trades": [
+    {
+      "symbol": "BTC",
+      "usd_amount": 35.0,
+      "price": 76978.0,
+      "units_bought": 0.00045468,
+      "signal": "FULL",
+      "date": "2026-02-01"
+    },
+    {
+      "symbol": "ETH",
+      "usd_amount": 15.0,
+      "price": 2270.47,
+      "units_bought": 0.00660656,
+      "signal": "FULL",
+      "date": "2026-02-01"
+    },
+    {
+      "symbol": "BTC",
+      "usd_amount": 35.0,
+      "price": 78737.9,
+      "units_bought": 0.00044451,
+      "signal": "FULL",
+      "date": "2026-02-02"
+    },
+    {
+      "symbol": "ETH",
+      "usd_amount": 15.0,
+      "price": 2347.0,
+      "units_bought": 0.00639114,
+      "signal": "FULL",
+      "date": "2026-02-02"
+    },
+    {
+      "symbol": "BTC",
+      "usd_amount": 35.0,
+      "price": 62913.2,
+      "units_bought": 0.00055632,
+      "signal": "FULL",
+      "date": "2026-02-05"
+    },
+    {
+      "symbol": "ETH",
+      "usd_amount": 15.0,
+      "price": 1826.71,
+      "units_bought": 0.00821148,
+      "signal": "FULL",
+      "date": "2026-02-05"
+    },
+    {
+      "symbol": "BTC",
+      "usd_amount": 52.5,
+      "price": 70334.0,
+      "units_bought": 0.00074644,
+      "signal": "ENHANCED",
+      "date": "2026-02-08"
+    },
+    {
+      "symbol": "ETH",
+      "usd_amount": 22.5,
+      "price": 2090.01,
+      "units_bought": 0.0107655,
+      "signal": "ENHANCED",
+      "date": "2026-02-08"
+    },
+    {
+      "symbol": "BTC",
+      "usd_amount": 52.5,
+      "price": 68841.3,
+      "units_bought": 0.00076262,
+      "signal": "ENHANCED",
+      "date": "2026-02-10"
+    },
+    {
+      "symbol": "ETH",
+      "usd_amount": 22.5,
+      "price": 2022.84,
+      "units_bought": 0.01112298,
+      "signal": "ENHANCED",
+      "date": "2026-02-10"
+    },
+    {
+      "symbol": "BTC",
+      "usd_amount": 35.0,
+      "price": 67081.7,
+      "units_bought": 0.00052175,
+      "signal": "FULL",
+      "date": "2026-02-11"
+    },
+    {
+      "symbol": "ETH",
+      "usd_amount": 15.0,
+      "price": 1941.03,
+      "units_bought": 0.00772786,
+      "signal": "FULL",
+      "date": "2026-02-11"
+    },
+    {
+      "symbol": "BTC",
+      "usd_amount": 52.5,
+      "price": 69821.7,
+      "units_bought": 0.00075192,
+      "signal": "ENHANCED",
+      "date": "2026-02-14"
+    },
+    {
+      "symbol": "ETH",
+      "usd_amount": 22.5,
+      "price": 2086.69,
+      "units_bought": 0.01078263,
+      "signal": "ENHANCED",
+      "date": "2026-02-14"
+    }
+  ]
+}

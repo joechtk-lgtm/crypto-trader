@@ -1,0 +1,69 @@
+{
+  "active": true,
+  "levels": [
+    {
+      "price": 70.0,
+      "buy_filled": false,
+      "sell_filled": false,
+      "units": 0.0
+    },
+    {
+      "price": 73.3333,
+      "buy_filled": false,
+      "sell_filled": false,
+      "units": 0.0
+    },
+    {
+      "price": 76.6667,
+      "buy_filled": false,
+      "sell_filled": false,
+      "units": 0.0
+    },
+    {
+      "price": 80.0,
+      "buy_filled": true,
+      "sell_filled": true,
+      "units": 0.625
+    },
+    {
+      "price": 83.3333,
+      "buy_filled": true,
+      "sell_filled": true,
+      "units": 0.6
+    },
+    {
+      "price": 86.6667,
+      "buy_filled": true,
+      "sell_filled": true,
+      "units": 0.576923
+    },
+    {
+      "price": 90.0,
+      "buy_filled": true,
+      "sell_filled": true,
+      "units": 0.555556
+    },
+    {
+      "price": 93.3333,
+      "buy_filled": true,
+      "sell_filled": false,
+      "units": 0.535714
+    },
+    {
+      "price": 96.6667,
+      "buy_filled": true,
+      "sell_filled": false,
+      "units": 0.517241
+    },
+    {
+      "price": 100.0,
+      "buy_filled": true,
+      "sell_filled": false,
+      "units": 0.5
+    }
+  ],
+  "previous_price": null,
+  "pnl_usd": 7.8583,
+  "consecutive_below_floor": 0,
+  "current_price": 86.84
+}
