@@ -1,0 +1,11 @@
+{
+  "grid_capital": 500.0,
+  "dca_reserve": 450.0,
+  "buffer": 50.0,
+  "holdings": {
+    "BTC": 0.0,
+    "ETH": 0.0,
+    "SOL": 0.0
+  },
+  "trades": []
+}

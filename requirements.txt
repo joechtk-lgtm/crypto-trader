@@ -1,0 +1,5 @@
+ccxt
+requests
+beautifulsoup4
+pandas
+anthropic

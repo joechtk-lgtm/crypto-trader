@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Trader</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #07080F;
+    --bg2:       #0C0E1A;
+    --bg3:       #111326;
+    --border:    #1C1F35;
+    --border2:   #262A45;
+    --amber:     #EFA820;
+    --amber-dim: #7A5510;
+    --amber-glow:#EFA82022;
+    --orange:    #E05A00;
+    --cream:     #F0E8D0;
+    --muted:     #6B6F8A;
+    --dim:       #3A3D55;
+    --green:     #3DB88A;
+    --red:       #E05A5A;
+    --blue:      #4A90D9;
+    --font-head: 'Barlow Condensed', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--cream);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.07) 2px,
+      rgba(0,0,0,0.07) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .logo-main {
+    font-family: var(--font-head);
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+
+  .logo-sub {
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .header-center {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .fg-widget {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .fg-label {
+    font-family: var(--font-head);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .fg-bar-wrap {
+    width: 120px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .fg-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+
+  .fg-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--amber);
+    line-height: 1;
+  }
+
+  .fg-class {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .timestamp {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .refresh-btn {
+    background: none;
+    border: 1px solid var(--amber-dim);
+    color: var(--amber);
+    font-family: var(--font-head);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 4px 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .refresh-btn:hover {
+    background: var(--amber-glow);
+    border-color: var(--amber);
+  }
+
+  /* ─── GRID LAYOUT ─── */
+  .main {
+    display: grid;
+    grid-template-columns: 260px 1fr 300px;
+    grid-template-rows: auto auto;
+    gap: 1px;
+    background: var(--border);
+    min-height: calc(100vh - 65px);
+  }
+
+  .panel {
+    background: var(--bg);
+    padding: 20px;
+  }
+
+  .panel-title {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 6px var(--amber);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ─── CAPITAL PANEL ─── */
+  .capital-block {
+    margin-bottom: 20px;
+  }
+
+  .capital-total {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--amber);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .capital-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .capital-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cap-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cap-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .cap-name {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cream);
+  }
+
+  .cap-amount {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--amber);
+  }
+
+  .cap-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .cap-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+  }
+
+  .cap-bar-fill.grid { background: var(--amber); }
+  .cap-bar-fill.dca { background: var(--blue); }
+  .cap-bar-fill.buffer { background: var(--dim); }
+
+  .holdings-section {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .holding-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .holding-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .coin-badge {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    padding: 2px 7px;
+    color: var(--amber);
+  }
+
+  .coin-units {
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .coin-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cream);
+  }
+
+  /* ─── GRID BOT PANEL ─── */
+  .grid-panel {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+
+  .grid-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 12px;
+  }
+
+  .stat-label {
+    font-family: var(--font-head);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--amber);
+    line-height: 1;
+  }
+
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.small { font-size: 16px; }
+
+  /* Grid ladder visualization */
+  .grid-ladder-wrap {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .grid-price-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px 0;
+    min-width: 48px;
+  }
+
+  .axis-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1;
+  }
+
+  .grid-levels-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: relative;
+  }
+
+  .grid-level {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    position: relative;
+    transition: all 0.3s;
+  }
+
+  .grid-level.buy-filled {
+    border-color: var(--amber-dim);
+    background: linear-gradient(90deg, var(--amber-glow) 0%, transparent 100%);
+  }
+
+  .grid-level.sell-filled {
+    border-color: var(--green);
+    background: linear-gradient(90deg, rgba(61,184,138,0.08) 0%, transparent 100%);
+  }
+
+  .grid-level.current {
+    border-color: var(--blue);
+    background: rgba(74,144,217,0.08);
+  }
+
+  .grid-level.unfilled {
+    border-color: var(--border);
+  }
+
+  .level-price {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--cream);
+    min-width: 44px;
+  }
+
+  .level-status {
+    font-family: var(--font-head);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    min-width: 70px;
+  }
+
+  .level-status.buy { color: var(--amber); }
+  .level-status.sell { color: var(--green); }
+  .level-status.none { color: var(--dim); }
+  .level-status.cur { color: var(--blue); }
+
+  .level-units {
+    font-size: 10px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  .level-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    opacity: 0.15;
+    border-radius: 0;
+    pointer-events: none;
+  }
+
+  .level-pnl {
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  .level-pnl.pos { color: var(--green); }
+  .level-pnl.neg { color: var(--red); }
+
+  /* ─── SIGNAL PANEL ─── */
+  .signal-panel {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .step-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .step-row {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    padding: 10px 0;
+  }
+
+  .step-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    min-width: 24px;
+  }
+
+  .step-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .step-circle.pass {
+    border-color: var(--green);
+    background: rgba(61,184,138,0.1);
+    color: var(--green);
+  }
+
+  .step-circle.fail {
+    border-color: var(--red);
+    background: rgba(224,90,90,0.1);
+    color: var(--red);
+  }
+
+  .step-circle.pending {
+    border-color: var(--dim);
+    color: var(--dim);
+  }
+
+  .step-connector {
+    width: 1px;
+    flex: 1;
+    min-height: 12px;
+    background: var(--border);
+  }
+
+  .step-content {
+    flex: 1;
+    padding-bottom: 8px;
+  }
+
+  .step-name {
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cream);
+    margin-bottom: 3px;
+  }
+
+  .step-detail {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .step-value {
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 3px;
+  }
+
+  .action-badge {
+    display: inline-block;
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 6px 16px;
+    text-transform: uppercase;
+    margin-top: 12px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .action-badge.full {
+    background: rgba(61,184,138,0.12);
+    border: 1px solid var(--green);
+    color: var(--green);
+  }
+
+  .action-badge.half {
+    background: rgba(239,168,32,0.12);
+    border: 1px solid var(--amber);
+    color: var(--amber);
+  }
+
+  .action-badge.skip {
+    background: rgba(107,111,138,0.1);
+    border: 1px solid var(--dim);
+    color: var(--muted);
+  }
+
+  .action-badge.enhanced {
+    background: rgba(224,90,90,0.12);
+    border: 1px solid var(--red);
+    color: var(--red);
+    animation: glow-red 1.5s infinite;
+  }
+
+  @keyframes glow-red {
+    0%, 100% { box-shadow: 0 0 0 transparent; }
+    50% { box-shadow: 0 0 12px rgba(224,90,90,0.3); }
+  }
+
+  /* ─── DCA LOG PANEL ─── */
+  .dca-panel {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .dca-funnel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .funnel-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 10px 8px;
+    text-align: center;
+  }
+
+  .funnel-num {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--amber);
+    line-height: 1;
+  }
+
+  .funnel-label {
+    font-family: var(--font-head);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .dca-trades {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  .dca-trades::-webkit-scrollbar { width: 3px; }
+  .dca-trades::-webkit-scrollbar-track { background: var(--bg); }
+  .dca-trades::-webkit-scrollbar-thumb { background: var(--amber-dim); }
+
+  .trade-row {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--amber);
+    padding: 8px 10px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px;
+  }
+
+  .trade-coin {
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--amber);
+  }
+
+  .trade-amount {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cream);
+    text-align: right;
+  }
+
+  .trade-detail {
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .trade-units {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .empty-state {
+    color: var(--dim);
+    font-size: 11px;
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── STATUS BAR ─── */
+  .status-bar {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 8px 24px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  .status-bar .sep { color: var(--border2); }
+
+  .status-ok { color: var(--green); }
+  .status-warn { color: var(--amber); }
+
+  /* ─── PAUSED STATE ─── */
+  .paused-banner {
+    background: rgba(224,90,90,0.08);
+    border: 1px solid var(--red);
+    color: var(--red);
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    text-align: center;
+    margin-bottom: 12px;
+    display: none;
+  }
+
+  /* ─── LOADING ─── */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* Scrollable grid */
+  .grid-scroll {
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .grid-scroll::-webkit-scrollbar { width: 3px; }
+  .grid-scroll::-webkit-scrollbar-track { background: var(--bg); }
+  .grid-scroll::-webkit-scrollbar-thumb { background: var(--amber-dim); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <span class="logo-main">⬡ Crypto Trader</span>
+    <span class="logo-sub">Paper Trading</span>
+  </div>
+
+  <div class="header-center">
+    <div class="fg-widget">
+      <div class="fg-label">Fear &amp; Greed</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="fg-value" id="fg-value">--</div>
+        <div>
+          <div class="fg-bar-wrap">
+            <div class="fg-bar-fill" id="fg-bar" style="width:0%"></div>
+          </div>
+          <div class="fg-class" id="fg-class">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:1px;height:40px;background:var(--border)"></div>
+
+    <div id="sol-price-header" style="text-align:center">
+      <div class="fg-label">SOL / USDT</div>
+      <div class="fg-value" id="sol-price-val">--</div>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="timestamp" id="timestamp">--</div>
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="main">
+
+  <!-- LEFT: CAPITAL -->
+  <div class="panel">
+    <div class="panel-title">
+      Capital Allocation
+      <span class="dot"></span>
+    </div>
+
+    <div class="capital-block">
+      <div class="capital-total" id="total-value">$0.00</div>
+      <div class="capital-label">Total Portfolio (USD)</div>
+
+      <div class="capital-bars">
+        <div class="cap-row">
+          <div class="cap-row-top">
+            <span class="cap-name">Grid Bot</span>
+            <span class="cap-amount" id="grid-cap">$500.00</span>
+          </div>
+          <div class="cap-bar"><div class="cap-bar-fill grid" id="grid-bar" style="width:50%"></div></div>
+        </div>
+        <div class="cap-row">
+          <div class="cap-row-top">
+            <span class="cap-name">DCA Reserve</span>
+            <span class="cap-amount" id="dca-cap">$450.00</span>
+          </div>
+          <div class="cap-bar"><div class="cap-bar-fill dca" id="dca-bar" style="width:45%"></div></div>
+        </div>
+        <div class="cap-row">
+          <div class="cap-row-top">
+            <span class="cap-name">Buffer</span>
+            <span class="cap-amount" id="buf-cap">$50.00</span>
+          </div>
+          <div class="cap-bar"><div class="cap-bar-fill buffer" id="buf-bar" style="width:5%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="holdings-section">
+      <div class="panel-title" style="margin-bottom:12px">Holdings</div>
+      <div id="holdings-list">
+        <div class="empty-state">No positions yet</div>
+      </div>
+    </div>
+
+    <div class="holdings-section" style="margin-top:16px">
+      <div class="panel-title" style="margin-bottom:12px">Grid PnL</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+        <span style="color:var(--muted);font-size:11px;letter-spacing:0.05em">Total Realized</span>
+        <span style="font-size:18px;font-weight:600" id="grid-pnl-left">$0.00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--border)">
+        <span style="color:var(--muted);font-size:11px;letter-spacing:0.05em">Fills</span>
+        <span style="font-size:18px;font-weight:600;color:var(--amber)" id="grid-fills-left">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: GRID BOT -->
+  <div class="panel grid-panel">
+    <div class="panel-title">
+      Grid Bot — SOL/USDT
+      <span id="grid-active-badge" style="font-family:var(--font-head);font-size:10px;font-weight:700;letter-spacing:0.12em;color:var(--green)">● ACTIVE</span>
+    </div>
+
+    <div id="grid-paused-banner" class="paused-banner">
+      ⚠ Grid Paused — SOL broke $70 floor
+    </div>
+
+    <div class="grid-stats-row">
+      <div class="stat-box">
+        <div class="stat-label">SOL Price</div>
+        <div class="stat-value small" id="sol-price">--</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total PnL</div>
+        <div class="stat-value" id="grid-pnl">$0.00</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Fills</div>
+        <div class="stat-value" id="grid-fills">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Range</div>
+        <div class="stat-value small">$70–$100</div>
+      </div>
+    </div>
+
+    <!-- Grid ladder -->
+    <div class="grid-ladder-wrap">
+      <div class="grid-price-axis" id="price-axis"></div>
+      <div class="grid-levels-col grid-scroll" id="grid-levels">
+        <div class="loading">Loading grid data...</div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div style="display:flex;gap:20px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="width:10px;height:10px;background:var(--amber);opacity:0.6"></div>
+        <span style="font-size:10px;color:var(--muted)">BUY filled</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="width:10px;height:10px;background:var(--green);opacity:0.6"></div>
+        <span style="font-size:10px;color:var(--muted)">SELL filled</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="width:10px;height:10px;background:var(--blue);opacity:0.6"></div>
+        <span style="font-size:10px;color:var(--muted)">Current price</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="width:10px;height:10px;border:1px solid var(--border)"></div>
+        <span style="font-size:10px;color:var(--muted)">Unfilled</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT TOP: SIGNAL -->
+  <div class="panel signal-panel">
+    <div class="panel-title">
+      Gatekeeper Signal
+      <span class="dot"></span>
+    </div>
+
+    <div class="step-flow" id="step-flow">
+      <!-- Populated by JS -->
+    </div>
+
+    <div id="action-badge-wrap" style="margin-top:4px"></div>
+  </div>
+
+  <!-- RIGHT BOTTOM: DCA LOG -->
+  <div class="panel dca-panel">
+    <div class="panel-title">DCA Activity</div>
+
+    <div class="dca-funnel">
+      <div class="funnel-box">
+        <div class="funnel-num" id="f1-count">0</div>
+        <div class="funnel-label">Checks Run</div>
+      </div>
+      <div class="funnel-box">
+        <div class="funnel-num" id="f2-count">0</div>
+        <div class="funnel-label">Step 2 Reached</div>
+      </div>
+      <div class="funnel-box">
+        <div class="funnel-num" id="f3-count">0</div>
+        <div class="funnel-label">Trades Fired</div>
+      </div>
+    </div>
+
+    <div class="dca-trades" id="dca-trades">
+      <div class="empty-state">No DCA trades yet.<br>Gatekeeper waiting for conditions.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span id="status-portfolio" class="status-ok">● Portfolio OK</span>
+  <span class="sep">|</span>
+  <span id="status-grid">Grid: ACTIVE</span>
+  <span class="sep">|</span>
+  <span id="status-signal">Last check: --</span>
+  <span class="sep">|</span>
+  <span>Exchange: OKX (paper)</span>
+  <span class="sep">|</span>
+  <span>Capital: $1,000 total</span>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────
+const PORTFOLIO_URL = '../data/crypto_portfolio.json';
+const GRID_URL      = '../data/crypto_grid.json';
+const LOG_URL       = '../logs/trading.jsonl';
+
+// ─── HELPERS ──────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const fmt = (n, d=2) => n == null ? 'N/A' : '$' + parseFloat(n).toFixed(d);
+const fmtNum = (n, d=4) => n == null ? '--' : parseFloat(n).toFixed(d);
+
+function fgColor(val) {
+  if (val <= 20) return '#E05A5A';
+  if (val <= 40) return '#E07A20';
+  if (val <= 60) return '#EFA820';
+  if (val <= 80) return '#8BC34A';
+  return '#3DB88A';
+}
+
+function pnlColor(n) {
+  if (n > 0) return 'var(--green)';
+  if (n < 0) return 'var(--red)';
+  return 'var(--amber)';
+}
+
+// ─── PARSE JSONL ─────────────────────────────────────────
+function parseJSONL(text) {
+  return text.trim().split('\n').filter(l => l.trim()).map(l => {
+    try { return JSON.parse(l); } catch { return null; }
+  }).filter(Boolean);
+}
+
+// ─── LOAD ALL DATA ────────────────────────────────────────
+async function loadAll() {
+  $('timestamp').textContent = new Date().toLocaleString('en-US', {
+    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+
+  const results = await Promise.allSettled([
+    fetch(PORTFOLIO_URL).then(r => r.json()),
+    fetch(GRID_URL).then(r => r.json()),
+    fetch(LOG_URL).then(r => r.text())
+  ]);
+
+  const portfolio = results[0].status === 'fulfilled' ? results[0].value : null;
+  const grid      = results[1].status === 'fulfilled' ? results[1].value : null;
+  const logs      = results[2].status === 'fulfilled' ? parseJSONL(results[2].value) : [];
+
+  renderCapital(portfolio);
+  renderGrid(grid);
+  renderSignal(logs);
+  renderDCA(logs);
+  renderStatusBar(portfolio, grid, logs);
+}
+
+// ─── CAPITAL PANEL ────────────────────────────────────────
+function renderCapital(p) {
+  if (!p) return;
+
+  const gridCap = p.grid_capital ?? 500;
+  const dcaCap  = p.dca_reserve  ?? 450;
+  const bufCap  = p.buffer        ?? 50;
+  const total   = gridCap + dcaCap + bufCap;
+
+  $('total-value').textContent = fmt(total, 0);
+  $('grid-cap').textContent = fmt(gridCap, 0);
+  $('dca-cap').textContent  = fmt(dcaCap, 0);
+  $('buf-cap').textContent  = fmt(bufCap, 0);
+
+  $('grid-bar').style.width = (gridCap / total * 100) + '%';
+  $('dca-bar').style.width  = (dcaCap  / total * 100) + '%';
+  $('buf-bar').style.width  = (bufCap  / total * 100) + '%';
+
+  // Holdings
+  const holdings = p.holdings || {};
+  const trades   = p.trades || [];
+  const prices   = {};
+  trades.forEach(t => { if (t.price) prices[t.symbol] = t.price; });
+
+  const coins = ['BTC', 'ETH', 'SOL'];
+  const holdingsHtml = coins.map(coin => {
+    const units = holdings[coin] || 0;
+    const price = prices[coin] || 0;
+    const val   = units * price;
+    if (units === 0) return `
+      <div class="holding-row">
+        <div class="holding-left">
+          <span class="coin-badge">${coin}</span>
+          <span class="coin-units">0.000000</span>
+        </div>
+        <div class="coin-value" style="color:var(--dim)">--</div>
+      </div>`;
+    return `
+      <div class="holding-row">
+        <div class="holding-left">
+          <span class="coin-badge">${coin}</span>
+          <span class="coin-units">${fmtNum(units, 6)}</span>
+        </div>
+        <div class="coin-value">${fmt(val)}</div>
+      </div>`;
+  }).join('');
+
+  $('holdings-list').innerHTML = holdingsHtml || '<div class="empty-state">No positions yet</div>';
+}
+
+// ─── GRID PANEL ───────────────────────────────────────────
+function renderGrid(g) {
+  if (!g) {
+    $('grid-levels').innerHTML = '<div class="empty-state">No grid data found</div>';
+    return;
+  }
+
+  const active  = g.active !== false;
+  const levels  = g.levels || [];
+  const pnl     = g.pnl_usd || 0;
+  const solPrice = g.current_price || null;
+
+  // Header stats
+  $('sol-price').textContent     = solPrice ? '$' + parseFloat(solPrice).toFixed(2) : '--';
+  $('sol-price-val').textContent = solPrice ? '$' + parseFloat(solPrice).toFixed(2) : '--';
+  $('grid-pnl').textContent      = fmt(pnl);
+  $('grid-pnl').style.color      = pnlColor(pnl);
+  $('grid-pnl-left').textContent = fmt(pnl);
+  $('grid-pnl-left').style.color = pnlColor(pnl);
+
+  const fills = levels.filter(l => l.buy_filled || l.sell_filled).length;
+  $('grid-fills').textContent      = fills;
+  $('grid-fills-left').textContent = fills;
+
+  // Paused state
+  if (!active) {
+    $('grid-paused-banner').style.display = 'block';
+    $('grid-active-badge').textContent = '⬛ PAUSED';
+    $('grid-active-badge').style.color = 'var(--red)';
+  }
+
+  // Price axis (reversed: high at top)
+  const sorted = [...levels].sort((a, b) => b.price - a.price);
+  const axisLabels = [];
+  sorted.forEach((l, i) => {
+    if (i % 3 === 0) axisLabels.push(`<div class="axis-label">$${parseFloat(l.price).toFixed(0)}</div>`);
+    else axisLabels.push(`<div class="axis-label"></div>`);
+  });
+  $('price-axis').innerHTML = axisLabels.join('');
+
+  // Grid levels
+  const levelsHtml = sorted.map(l => {
+    const price = parseFloat(l.price);
+    const isCurrent = solPrice && Math.abs(price - parseFloat(solPrice)) < 3.34;
+    const isBuy  = l.buy_filled && !l.sell_filled;
+    const isSell = l.sell_filled;
+
+    let cls = 'unfilled';
+    let statusText = 'UNFILLED';
+    let statusCls  = 'none';
+    let barColor   = 'transparent';
+    let pnlText    = '';
+
+    if (isCurrent) {
+      cls = 'current'; statusText = '◀ PRICE'; statusCls = 'cur'; barColor = 'rgba(74,144,217,0.2)';
+    } else if (isSell) {
+      cls = 'sell-filled'; statusText = '✓ SOLD'; statusCls = 'sell'; barColor = 'rgba(61,184,138,0.15)';
+      const profit = (l.sell_price - l.price) * (l.units || 0);
+      pnlText = `<span class="level-pnl pos">+${fmt(profit)}</span>`;
+    } else if (isBuy) {
+      cls = 'buy-filled'; statusText = '● BOUGHT'; statusCls = 'buy'; barColor = 'rgba(239,168,32,0.18)';
+    }
+
+    return `<div class="grid-level ${cls}">
+      <div class="level-bar" style="background:${barColor};width:100%"></div>
+      <span class="level-price">$${price.toFixed(2)}</span>
+      <span class="level-status ${statusCls}">${statusText}</span>
+      ${l.units ? `<span class="level-units">${parseFloat(l.units).toFixed(4)} SOL</span>` : ''}
+      ${pnlText}
+    </div>`;
+  }).join('');
+
+  $('grid-levels').innerHTML = levelsHtml || '<div class="empty-state">No levels initialized</div>';
+}
+
+// ─── SIGNAL PANEL ─────────────────────────────────────────
+function renderSignal(logs) {
+  const signals = logs.filter(l => l.event === 'CRYPTO_INSTITUTIONAL_SIGNAL');
+  const last    = signals[signals.length - 1];
+
+  if (!last) {
+    $('step-flow').innerHTML = `
+      <div class="empty-state" style="padding:16px 0">
+        No signal checks yet.<br>Run option 1 in run.py.
+      </div>`;
+    return;
+  }
+
+  const d    = last.data || {};
+  const step = d.step_reached || 1;
+  const fg   = d.scores?.fear_greed;
+  const btcF = d.scores?.btc_funding;
+  const ethF = d.scores?.eth_funding;
+  const etf  = d.scores?.etf_7day_flow;
+
+  // Update F&G display
+  if (fg != null) {
+    $('fg-value').textContent = fg;
+    $('fg-bar').style.width   = fg + '%';
+    $('fg-bar').style.background = fgColor(fg);
+    $('fg-class').textContent = fg <= 20 ? 'Extreme Fear' : fg <= 40 ? 'Fear' : fg <= 60 ? 'Neutral' : fg <= 80 ? 'Greed' : 'Extreme Greed';
+  }
+
+  const step1pass = step >= 2 || d.action !== 'SKIP' || step > 1;
+  const step2pass = step >= 3;
+  const step3pass = step >= 3 && d.action !== 'SKIP';
+
+  function circle(num, pass, reached) {
+    if (!reached) return `<div class="step-circle pending">${num}</div>`;
+    return `<div class="step-circle ${pass ? 'pass' : 'fail'}">${pass ? '✓' : '✗'}</div>`;
+  }
+
+  $('step-flow').innerHTML = `
+    <div class="step-row">
+      <div class="step-line">
+        ${circle(1, step >= 2, true)}
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-content">
+        <div class="step-name">Fear &amp; Greed</div>
+        <div class="step-detail">Must be below 20 (Extreme Fear)</div>
+        <div class="step-value" style="color:${step >= 2 ? 'var(--green)' : 'var(--red)'}">
+          ${fg != null ? `Index: ${fg}` : '--'}
+        </div>
+      </div>
+    </div>
+
+    <div class="step-row">
+      <div class="step-line">
+        ${circle(2, step >= 3, step >= 2)}
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-content">
+        <div class="step-name">Funding Rates</div>
+        <div class="step-detail">BTC + ETH must both be negative</div>
+        <div class="step-value" style="color:${step >= 3 ? 'var(--green)' : step >= 2 ? 'var(--red)' : 'var(--dim)'}">
+          ${btcF != null ? `BTC: ${btcF.toFixed(4)}%` : '--'}
+          ${ethF != null ? ` · ETH: ${ethF.toFixed(4)}%` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="step-row">
+      <div class="step-line">
+        ${circle(3, step3pass, step >= 3)}
+      </div>
+      <div class="step-content">
+        <div class="step-name">ETF Flows (Farside)</div>
+        <div class="step-detail">7-day rolling net flow</div>
+        <div class="step-value" style="color:${step >= 3 ? (etf > 0 ? 'var(--green)' : 'var(--red)') : 'var(--dim)'}">
+          ${etf != null ? `7d flow: ${etf > 0 ? '+' : ''}${etf.toFixed(0)}M USD` : step >= 3 ? 'Checked' : 'Not reached'}
+        </div>
+      </div>
+    </div>
+  `;
+
+  const action = d.action || 'SKIP';
+  const actionMap = {
+    'FULL':     ['full',     '✅ FULL DCA — Run Option 3 ($50)'],
+    'HALF':     ['half',     '⚠ HALF DCA — Run Option 3 ($25)'],
+    'ENHANCED': ['enhanced', '🚨 ENHANCED — Run Option 3 NOW ($75)'],
+    'SKIP':     ['skip',     '⏭ SKIP — Check again tomorrow'],
+  };
+  const [cls, label] = actionMap[action] || actionMap['SKIP'];
+  $('action-badge-wrap').innerHTML = `<div class="action-badge ${cls}">${label}</div>`;
+
+  const ts = new Date(last.timestamp).toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  $('status-signal').textContent = `Last check: ${ts}`;
+}
+
+// ─── DCA LOG ──────────────────────────────────────────────
+function renderDCA(logs) {
+  const signals = logs.filter(l => l.event === 'CRYPTO_INSTITUTIONAL_SIGNAL');
+  const trades  = logs.filter(l => l.event === 'CRYPTO_DCA_BUY');
+
+  $('f1-count').textContent = signals.length;
+  $('f2-count').textContent = signals.filter(l => (l.data?.step_reached || 1) >= 2).length;
+  $('f3-count').textContent = trades.length;
+
+  if (!trades.length) {
+    $('dca-trades').innerHTML = '<div class="empty-state">No DCA trades yet.<br>Gatekeeper waiting for conditions.</div>';
+    return;
+  }
+
+  const html = [...trades].reverse().slice(0, 20).map(t => {
+    const d = t.data || {};
+    const ts = new Date(t.timestamp).toLocaleString('en-US', {month:'short',day:'numeric'});
+    return `<div class="trade-row">
+      <div>
+        <div class="trade-coin">${d.symbol || '?'}</div>
+        <div class="trade-detail">${ts} · @ $${parseFloat(d.price||0).toFixed(2)}</div>
+      </div>
+      <div>
+        <div class="trade-amount">${fmt(d.usd_amount)}</div>
+        <div class="trade-units">${fmtNum(d.units_bought, 6)} units</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  $('dca-trades').innerHTML = html;
+}
+
+// ─── STATUS BAR ───────────────────────────────────────────
+function renderStatusBar(p, g, logs) {
+  if (p) {
+    $('status-portfolio').className = 'status-ok';
+    $('status-portfolio').textContent = '● Portfolio loaded';
+  }
+  if (g) {
+    const active = g.active !== false;
+    $('status-grid').textContent = `Grid: ${active ? 'ACTIVE' : 'PAUSED'}`;
+    $('status-grid').style.color = active ? 'var(--green)' : 'var(--red)';
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+loadAll();
+setInterval(loadAll, 60000); // auto-refresh every 60s
+</script>
+</body>
+</html>
