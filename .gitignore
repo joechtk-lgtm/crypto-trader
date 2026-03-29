@@ -7,7 +7,26 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 
-# Runtime data
+# Runtime data — portfolio state, grid fills, trade history
 data/*.json
+data/*.csv
+data/*.db
+data/*.sqlite3
+
+# Logs — trading activity, gatekeeper checks
 logs/*.jsonl
 logs/*.log
+logs/*.csv
+
+# Dashboard process
+.dashboard.pid
+
+# SQLite anywhere
+*.db
+*.sqlite3
+
+# OS / editor junk
+Thumbs.db
+*~
+.vscode/
+.idea/

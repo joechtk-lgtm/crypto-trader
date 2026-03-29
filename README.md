@@ -1,47 +1,101 @@
 # Crypto Trader
 
-Institutional-grade paper trading system combining Fear & Greed DCA
-with a grid bot for SOL/USDT.
+Paper trading system combining a **Fear & Greed DCA gatekeeper** with a
+**SOL/USDT grid bot**, designed to deploy capital systematically during
+confirmed market capitulation while capturing range-bound oscillations.
 
-## Overview
-Two complementary strategies running simultaneously:
-1. **Fear DCA**: 3-step gatekeeper deploys capital only during confirmed
-   market capitulation (Fear & Greed < 20 + negative funding rates + positive ETF flows)
-2. **Grid Bot**: Captures SOL/USDT price oscillations in the $70-$100 range
+## Features
 
-## Strategy Design
-The 3-step gatekeeper was designed after researching and stress-testing
-multiple signal sources. News-based institutional signals were deliberately
-excluded after analysis showed 13F filing delays (45 days) make them
-unsuitable for tactical DCA timing.
+### Three-Step DCA Gatekeeper
+A sequential signal filter that must clear all three steps before deploying
+capital into BTC and ETH:
+
+1. **Fear & Greed Index** — must be in Extreme Fear (below 20)
+2. **Funding Rates** — BTC and ETH perp funding must both be negative
+   (indicating bearish leverage sentiment)
+3. **ETF Flows** — 7-day rolling Bitcoin ETF net flow must be positive
+   (institutional accumulation despite retail fear)
+
+Depending on how many steps pass and overall conditions, the gatekeeper
+recommends FULL, HALF, ENHANCED, or SKIP for each daily check.
+
+### SOL/USDT Grid Bot
+Captures price oscillations across a configurable price range with evenly
+spaced buy/sell levels. Tracks round-trip fills, realized PnL, and grid ROI.
+
+### Dashboard
+An HTML dashboard with an amber terminal aesthetic, featuring:
+- **Grid visualization** — ladder view of all levels with fill status,
+  price range indicator, and per-level PnL
+- **Capital allocation** — real-time breakdown of grid, DCA reserve,
+  deployed holdings, and buffer
+- **Gatekeeper signal** — step-by-step display of the latest three-step check
+- **Gatekeeper history** — table of the last 14 daily checks with all scores
+- **Portfolio chart** — daily portfolio value over time (canvas-rendered)
+- **Activity log** — filterable, paginated event stream of all system actions
+- **DCA funnel** — conversion metrics from checks → step 2 → trades fired
+
+### CLI Menu
+Interactive terminal menu for running signal checks, executing DCA trades
+(dry-run or live paper), checking grid status, viewing portfolio, and
+launching/stopping the dashboard server.
 
 ## Tech Stack
-- Python + CCXT (OKX) for market data
-- alternative.me Fear & Greed API
-- Farside Investors ETF flow data (web scraping)
-- JSONL event logging
-- HTML dashboard (amber terminal aesthetic)
 
-## Capital Allocation
-| Bucket | Amount | Purpose |
-|--------|--------|---------|
-| Grid bot | $500 | 10 levels × $50, SOL/USDT $70-$100 |
-| DCA reserve | $450 | Deployed on confirmed extreme fear |
-| Buffer | $50 | Never touched |
+- **Python** — core trading logic, CLI interface
+- **OKX public API** (via CCXT) — price data, funding rates
+- **alternative.me API** — Fear & Greed Index
+- **Farside Investors** — Bitcoin ETF flow data (web scraping)
+- **JSONL event logging** — append-only structured log for all system events
+- **HTML / CSS / JS dashboard** — single-page dashboard served locally
 
 ## Running Locally
+
 ```bash
+# Clone and install
+git clone <repo-url>
 cd crypto_trader
+pip3 install -r requirements.txt
+
+# Run the CLI
 python3 run.py
 ```
 
+The CLI menu options:
+1. Check institutional signal (3-step gatekeeper)
+2. Run Fear DCA check (dry run)
+3. Run Fear DCA (live paper trade)
+4. Check grid bot status
+5. View portfolio summary
+6. Open / close dashboard
+
+The dashboard starts a local HTTP server and opens in your browser.
+
+## Project Structure
+
+```
+config.py                 # Strategy parameters and thresholds
+run.py                    # CLI entry point with dashboard server management
+data/fear_greed.py        # Fear & Greed API client
+data/fetcher.py           # OKX market data (ticker, OHLCV, funding rates)
+signals/institutional.py  # 3-step gatekeeper logic
+dca/fear_dca.py           # DCA execution engine
+grid_bot/engine.py        # Grid bot initialization, fill checking, status
+logs/logger.py            # Structured JSONL logger
+dashboard/                # HTML/CSS/JS dashboard
+examples/                 # Synthetic 2-month trading history for demo
+```
+
 ## Example Data
-See `examples/` for a simulated 2-month trading history (Jan-Mar 2026)
-using real historical price and Fear & Greed data.
+
+The `examples/` directory contains a generated 2-month trading history
+(Jan–Mar 2026) using real historical Fear & Greed and price data, useful
+for testing the dashboard without live trading data.
 
 ## Project Status
-Paper trading (live since March 2026). Built as part of USC Marshall MBA
-portfolio demonstrating systematic trading system design.
+
+Paper trading system. Built as part of USC Marshall MBA portfolio
+demonstrating systematic trading system design.
 
 ---
 *Chayut (Joe) Teeradakorn | USC Marshall MBA 2026*

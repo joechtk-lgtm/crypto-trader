@@ -3,6 +3,9 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import json
+import signal
+import subprocess
+import webbrowser
 
 from data.fear_greed import get_fear_greed
 from data.fetcher import get_ticker
@@ -12,6 +15,58 @@ from grid_bot.engine import check_grid, grid_status, initialize_grid
 
 
 PORTFOLIO_PATH = "data/crypto_portfolio.json"
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+DASHBOARD_PID_FILE = os.path.join(PROJECT_DIR, ".dashboard.pid")
+DASHBOARD_PORT = 8081
+DASHBOARD_URL = f"http://localhost:{DASHBOARD_PORT}/dashboard/"
+
+
+def _pid_alive(pid):
+    """Check if a process with the given PID is still running."""
+    try:
+        os.kill(pid, 0)
+        return True
+    except (OSError, ProcessLookupError):
+        return False
+
+
+def open_dashboard():
+    """Start the dashboard server (or re-open if already running)."""
+    if os.path.exists(DASHBOARD_PID_FILE):
+        with open(DASHBOARD_PID_FILE) as f:
+            pid = int(f.read().strip())
+        if _pid_alive(pid):
+            print(f"\n  Dashboard already running (PID {pid}). Opening browser...")
+            webbrowser.open(DASHBOARD_URL)
+            return
+        else:
+            os.remove(DASHBOARD_PID_FILE)
+
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "http.server", str(DASHBOARD_PORT)],
+        cwd=PROJECT_DIR,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    with open(DASHBOARD_PID_FILE, "w") as f:
+        f.write(str(proc.pid))
+    print(f"\n  Dashboard server started on port {DASHBOARD_PORT} (PID {proc.pid})")
+    webbrowser.open(DASHBOARD_URL)
+
+
+def close_dashboard():
+    """Stop the dashboard server."""
+    if not os.path.exists(DASHBOARD_PID_FILE):
+        print("\n  Dashboard is not running.")
+        return
+    with open(DASHBOARD_PID_FILE) as f:
+        pid = int(f.read().strip())
+    if _pid_alive(pid):
+        os.kill(pid, signal.SIGTERM)
+        print(f"\n  Dashboard server stopped (PID {pid}).")
+    else:
+        print("\n  Dashboard process was already dead.")
+    os.remove(DASHBOARD_PID_FILE)
 
 
 def view_portfolio():
@@ -78,6 +133,8 @@ def main():
         print("3. Run Fear DCA (live paper trade)")
         print("4. Check grid bot status")
         print("5. View portfolio summary")
+        print("d. Open Dashboard")
+        print("c. Close Dashboard")
         print("6. Exit")
         print()
 
@@ -93,6 +150,10 @@ def main():
             check_grid(dry_run=False)
         elif choice == "5":
             view_portfolio()
+        elif choice.lower() == "d":
+            open_dashboard()
+        elif choice.lower() == "c":
+            close_dashboard()
         elif choice == "6":
             print("Goodbye.")
             break
