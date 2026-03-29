@@ -94,8 +94,7 @@ for testing the dashboard without live trading data.
 
 ## Project Status
 
-Paper trading system. Built as part of USC Marshall MBA portfolio
+Paper trading system. Built as part of portfolio
 demonstrating systematic trading system design.
 
----
-*Chayut (Joe) Teeradakorn | USC Marshall MBA 2026*
+
