@@ -3,7 +3,6 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import requests
-from bs4 import BeautifulSoup
 
 from data.fear_greed import get_fear_greed
 from data.fetcher import get_funding_rate
@@ -11,34 +10,18 @@ from logs.logger import CryptoLogger
 
 logger = CryptoLogger()
 
+ETF_FLOW_URL = "https://www.theblock.co/api/charts/chart/etfs/bitcoin-etf/spot-bitcoin-etf-total-net-flow"
 
-def _parse_etf_flow(html: str) -> float:
-    soup = BeautifulSoup(html, "html.parser")
-    table = soup.find("table")
-    if not table:
-        return None
 
-    rows = table.find_all("tr")
-    data_rows = [r for r in rows if r.find("td")]
-
-    last7 = data_rows[-7:] if len(data_rows) >= 7 else data_rows
-
-    total = 0.0
-    for row in last7:
-        cells = row.find_all("td")
-        if len(cells) < 2:
-            continue
-        # Last cell is typically the "Total" column
-        # Try the last numeric cell
-        for cell in reversed(cells):
-            text = cell.get_text(strip=True).replace(",", "").replace("$", "").replace("(", "-").replace(")", "")
-            try:
-                total += float(text)
-                break
-            except ValueError:
-                continue
-
-    return total
+def _fetch_etf_7day_flow() -> float:
+    """Fetch 7-day total net flow (in $M) for BTC spot ETFs from The Block."""
+    resp = requests.get(ETF_FLOW_URL, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
+    resp.raise_for_status()
+    data = resp.json()
+    series = data["chart"]["jsonFile"]["Series"]["Total Net Flow"]["Data"]
+    last7 = series[-7:] if len(series) >= 7 else series
+    total = sum(entry["Result"] for entry in last7)
+    return total / 1_000_000  # convert to millions
 
 
 def run_gatekeeper():
@@ -71,12 +54,12 @@ def run_gatekeeper():
             "scores": {"fear_greed": fg["value"], "btc_funding": btc_funding, "eth_funding": eth_funding, "etf_7day_flow": None},
         }
 
-    # Step 3: ETF flows from farside
+    # Step 3: ETF flows from The Block
     try:
-        resp = requests.get("https://farside.co.uk/btc/", timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-        resp.raise_for_status()
-        etf_flow = _parse_etf_flow(resp.text)
-    except Exception:
+        etf_flow = _fetch_etf_7day_flow()
+    except Exception as e:
+        logger.log_event("ETF_FLOW_FETCH_ERROR", {"error": str(e), "source": ETF_FLOW_URL})
+        print(f"  [ETF fetch error] {type(e).__name__}: {e}")
         etf_flow = None
 
     if etf_flow is None:

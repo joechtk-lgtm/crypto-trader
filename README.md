@@ -14,7 +14,10 @@ capital into BTC and ETH:
 2. **Funding Rates** — BTC and ETH perp funding must both be negative
    (indicating bearish leverage sentiment)
 3. **ETF Flows** — 7-day rolling Bitcoin ETF net flow must be positive
-   (institutional accumulation despite retail fear)
+   (institutional accumulation despite retail fear).
+   *Data source migrated from Farside Investors HTML scraping to
+   [The Block's JSON API](https://www.theblock.co/) after Farside
+   added Cloudflare bot protection.*
 
 Depending on how many steps pass and overall conditions, the gatekeeper
 recommends FULL, HALF, ENHANCED, or SKIP for each daily check.
@@ -25,8 +28,10 @@ spaced buy/sell levels. Tracks round-trip fills, realized PnL, and grid ROI.
 
 ### Dashboard
 An HTML dashboard with an amber terminal aesthetic, featuring:
-- **Grid visualization** — ladder view of all levels with fill status,
-  price range indicator, and per-level PnL
+- **Grid stats summary** — total fills, realized PnL, ROI, and active level count
+- **Grid visualization** — ladder view of all levels with fill status
+  and per-level PnL
+- **Grid range indicator** — visual indicator of current price within the grid range
 - **Capital allocation** — real-time breakdown of grid, DCA reserve,
   deployed holdings, and buffer
 - **Gatekeeper signal** — step-by-step display of the latest three-step check
@@ -45,7 +50,7 @@ launching/stopping the dashboard server.
 - **Python** — core trading logic, CLI interface
 - **OKX public API** (via CCXT) — price data, funding rates
 - **alternative.me API** — Fear & Greed Index
-- **Farside Investors** — Bitcoin ETF flow data (web scraping)
+- **The Block API** — Bitcoin spot ETF net flow data (JSON API)
 - **JSONL event logging** — append-only structured log for all system events
 - **HTML / CSS / JS dashboard** — single-page dashboard served locally
 
